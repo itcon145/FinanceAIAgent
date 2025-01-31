@@ -5,3 +5,4 @@ matplotlib
 prophet
 groq
 python-dotenv
+openpyxl
