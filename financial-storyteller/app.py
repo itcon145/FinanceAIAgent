@@ -29,7 +29,7 @@ st.markdown("""
 
 # **📢 Title & Description**
 st.markdown('<h1 class="title">📊 Financial Data Storyteller AI</h1>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Upload your financial data and AI will craft a compelling narrative using frameworks like the Pyramid Principle.</p>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Upload your financial data, and AI will craft a compelling data story with actionable insights.</p>', unsafe_allow_html=True)
 
 # **📂 Upload Financial Data**
 st.subheader("📥 Upload Your Financial Data (Excel)")
@@ -37,8 +37,12 @@ uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx"])
 
 if uploaded_file:
     df = pd.read_excel(uploaded_file)
+    
     st.subheader("🔍 Data Preview")
     st.dataframe(df)
+
+    # Convert dataframe to a summary for AI
+    data_summary = df.describe(include='all').to_string()
 
     # **User Input: Key Focus Areas**
     st.subheader("🎯 What is the key message of your presentation?")
@@ -46,18 +50,21 @@ if uploaded_file:
 
     if st.button("🚀 Generate Data Storytelling Strategy"):
         client = Groq(api_key=GROQ_API_KEY)
-        
+
         # AI Prompt for Storytelling
         prompt = f"""
-        You are an expert in financial data storytelling and business communication.
-        The user has uploaded financial data and wants to present insights to senior stakeholders, including CFOs.
-        Use the Pyramid Principle and other storytelling frameworks to recommend:
-        - The best way to structure the presentation.
-        - Key insights from the data.
-        - The sequence in which they should be presented.
-        - Suggested text for PowerPoint slides.
+        You are an expert in financial storytelling and executive presentations.
+        The user has uploaded financial data, and your task is to analyze it and craft a compelling story.
+        Your output should follow this structure:
+        1️⃣ **Overall Data Insights** – Key trends and findings from the uploaded data.
+        2️⃣ **Strategic Message** – What is the most important insight for senior stakeholders?
+        3️⃣ **Slide Narrative** – A structured sequence of slides with content for a CFO presentation.
+        4️⃣ **Actionable Takeaways** – Clear recommendations based on the data.
 
-        Key user input: {user_input}
+        Data Summary:
+        {data_summary}
+
+        Key User Input: {user_input}
         """
 
         response = client.chat.completions.create(
