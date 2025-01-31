@@ -235,3 +235,20 @@ response = client.chat.completions.create(
 )
 
 st.write(response.choices[0].message.content)
+
+
+
+    # AI Chat - Users Can Ask Questions
+    st.subheader("🗣️ Chat with AI About Your Data")
+
+    user_query = st.text_input("🔍 Ask the AI about your dataset:")
+    if user_query:
+        chat_response = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "You are an AI data scientist helping users understand their datasets."},
+                {"role": "user", "content": f"Dataset Summary:\n{df.describe(include='all').to_string()}\n{user_query}"}
+            ],
+            model="llama3-8b-8192",
+        )
+        st.write(chat_response.choices[0].message.content)
+
