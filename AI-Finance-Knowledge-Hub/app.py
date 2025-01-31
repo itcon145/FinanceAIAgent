@@ -36,7 +36,7 @@ if st.button("🚀 Generate Explanation"):
                 },
                 {"role": "user", "content": f"Explain {user_prompt} in a structured manner, starting from simple terms and increasing difficulty step by step."}
             ],
-            model="deepseek-r1-distill-llama-70b",
+            model="llama-3.3-70b-versatile",
         )
 
         ai_response = response.choices[0].message.content
