@@ -28,14 +28,19 @@ if st.button("🚀 Generate DCF Model"):
     try:
         # Fetch financial data
         stock = yf.Ticker(company_name)
-        financials = stock.financials
-        cash_flow = stock.cashflow
+        financials = stock.financials.fillna(0)  # Avoid missing data
+        cash_flow = stock.cashflow.fillna(0)  # Fix for missing cash flow items
         market_data = stock.history(period="1y")
 
         # Extract key financial data
-        revenue = financials.loc["Total Revenue"].values[0]
-        net_income = financials.loc["Net Income"].values[0]
-        free_cash_flow = cash_flow.loc["Total Cash From Operating Activities"].values[0] - cash_flow.loc["Capital Expenditures"].values[0]
+        revenue = financials.loc["Total Revenue"].values[0] if "Total Revenue" in financials.index else 0
+        net_income = financials.loc["Net Income"].values[0] if "Net Income" in financials.index else 0
+
+        # Fix: Handle missing cash flow data
+        operating_cash_flow = cash_flow.loc["Total Cash From Operating Activities"].values[0] if "Total Cash From Operating Activities" in cash_flow.index else 0
+        capex = cash_flow.loc["Capital Expenditures"].values[0] if "Capital Expenditures" in cash_flow.index else 0
+
+        free_cash_flow = operating_cash_flow - capex  # Free Cash Flow Calculation
         shares_outstanding = stock.info.get("sharesOutstanding", 1)
         risk_free_rate = 0.025  # Approximate risk-free rate (US 10-Year Treasury)
 
@@ -94,37 +99,6 @@ if st.button("🚀 Generate DCF Model"):
         )
 
         st.write(response.choices[0].message.content)
-
-        # **Interactive AI Chat**
-        if "chat_history" not in st.session_state:
-            st.session_state.chat_history = []
-
-        st.subheader("🗣️ Chat with AI About This Valuation")
-
-        user_query = st.text_input("🔍 Ask the AI about this DCF model:")
-
-        if st.button("💬 Ask AI"):
-            if user_query:
-                chat_response = client.chat.completions.create(
-                    messages=[
-                        {"role": "system", "content": "You are an AI financial analyst helping users understand Discounted Cash Flow (DCF) valuation."},
-                        {"role": "user", "content": f"DCF Valuation for {company_name}:\n"
-                                                    f"Revenue Growth Rate: {growth_rate*100:.2f}%\n"
-                                                    f"Discount Rate (WACC): {discount_rate*100:.2f}%\n"
-                                                    f"Terminal Growth Rate: {terminal_growth_rate*100:.2f}%\n"
-                                                    f"Enterprise Value: ${total_enterprise_value:,.2f}\n"
-                                                    f"Intrinsic Value per Share: ${intrinsic_value_per_share:,.2f}\n"
-                                                    f"Current Market Price: ${stock.info.get('currentPrice', 'N/A')}\n"
-                                                    f"{user_query}"}
-                    ],
-                    model="llama3-8b-8192",
-                )
-
-                st.session_state.chat_history.append(("🧑‍💼 You", user_query))
-                st.session_state.chat_history.append(("🤖 AI", chat_response.choices[0].message.content))
-
-        for sender, message in st.session_state.chat_history:
-            st.write(f"**{sender}:** {message}")
 
     except Exception as e:
         st.error(f"⚠️ Error fetching financial data: {e}")
