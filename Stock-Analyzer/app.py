@@ -1,8 +1,8 @@
 import streamlit as st
 import pandas as pd
 import yfinance as yf
-import matplotlib.pyplot as plt
-import seaborn as sns
+import plotly.express as px
+import plotly.graph_objects as go
 import os
 from groq import Groq
 from dotenv import load_dotenv
@@ -38,41 +38,29 @@ if st.button("🚀 Get Stock Data"):
         st.write(f"**52-Week Low:** ${stock.info.get('fiftyTwoWeekLow', 'N/A'):,}")
         st.write(f"**Dividend Yield:** {stock.info.get('dividendYield', 'N/A')}%")
 
-        # Plot Stock Price Trends
+        # Plot Stock Price Trends with Plotly
         st.subheader("📊 Stock Price Trend (Last Year)")
-        fig, ax = plt.subplots(figsize=(12, 6))
-        sns.lineplot(data=stock_data, x=stock_data.index, y="Close", label="Close Price", color="blue", linewidth=2)
-        plt.title(f"{company_name} Stock Price Trend")
-        plt.xlabel("Date")
-        plt.ylabel("Stock Price (USD)")
-        plt.grid(True)
-        st.pyplot(fig)
+        fig_price = px.line(stock_data, x=stock_data.index, y="Close", title=f"{company_name} Stock Price Trend",
+                            labels={"Close": "Stock Price (USD)", "index": "Date"}, template="plotly_dark")
+        st.plotly_chart(fig_price)
 
         # Moving Averages
         stock_data["50-day MA"] = stock_data["Close"].rolling(window=50).mean()
         stock_data["200-day MA"] = stock_data["Close"].rolling(window=200).mean()
 
         st.subheader("📈 Moving Averages (50-day & 200-day)")
-        fig, ax = plt.subplots(figsize=(12, 6))
-        sns.lineplot(data=stock_data, x=stock_data.index, y="Close", label="Close Price", color="blue", linewidth=2)
-        sns.lineplot(data=stock_data, x=stock_data.index, y="50-day MA", label="50-day MA", color="orange", linewidth=2)
-        sns.lineplot(data=stock_data, x=stock_data.index, y="200-day MA", label="200-day MA", color="red", linewidth=2)
-        plt.title(f"{company_name} Moving Averages")
-        plt.xlabel("Date")
-        plt.ylabel("Stock Price (USD)")
-        plt.legend()
-        plt.grid(True)
-        st.pyplot(fig)
+        fig_ma = go.Figure()
+        fig_ma.add_trace(go.Scatter(x=stock_data.index, y=stock_data["Close"], mode="lines", name="Close Price", line=dict(color="blue")))
+        fig_ma.add_trace(go.Scatter(x=stock_data.index, y=stock_data["50-day MA"], mode="lines", name="50-day MA", line=dict(color="orange", dash="dot")))
+        fig_ma.add_trace(go.Scatter(x=stock_data.index, y=stock_data["200-day MA"], mode="lines", name="200-day MA", line=dict(color="red", dash="dot")))
+        fig_ma.update_layout(title=f"{company_name} Moving Averages", xaxis_title="Date", yaxis_title="Stock Price (USD)", template="plotly_dark")
+        st.plotly_chart(fig_ma)
 
         # Trading Volume
         st.subheader("📊 Trading Volume")
-        fig, ax = plt.subplots(figsize=(12, 6))
-        sns.barplot(x=stock_data.index, y=stock_data["Volume"], color="purple", alpha=0.6)
-        plt.title(f"{company_name} Trading Volume")
-        plt.xlabel("Date")
-        plt.ylabel("Volume")
-        plt.xticks(rotation=45)
-        st.pyplot(fig)
+        fig_volume = px.bar(stock_data, x=stock_data.index, y="Volume", title=f"{company_name} Trading Volume",
+                            labels={"Volume": "Shares Traded", "index": "Date"}, template="plotly_dark")
+        st.plotly_chart(fig_volume)
 
         # AI Section
         st.subheader("🤖 AI-Powered Company & Industry Insights")
