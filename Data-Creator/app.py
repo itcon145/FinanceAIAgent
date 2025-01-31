@@ -2,6 +2,7 @@ import streamlit as st
 import pandas as pd
 import numpy as np
 import os
+import io
 from groq import Groq
 from dotenv import load_dotenv
 
@@ -26,8 +27,8 @@ if st.button("🚀 Generate Synthetic Data"):
         client = Groq(api_key=GROQ_API_KEY)
         response = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are an AI that generates structured synthetic data for Excel. Users will describe the dataset, and you will create column names, data types, and a sample dataset."},
-                {"role": "user", "content": f"Generate a structured dataset based on this description: {user_prompt}. Provide column names and example rows in a tabular format."}
+                {"role": "system", "content": "You are an AI that generates structured synthetic data for Excel. Users will describe the dataset, and you will create column names, data types, and a sample dataset. Provide the data as a CSV-formatted table (comma-separated values)."},
+                {"role": "user", "content": f"Generate a structured dataset based on this description: {user_prompt}. Format it strictly as a CSV table with headers and data rows, separated by commas."}
             ],
             model="llama3-8b-8192",
         )
@@ -36,22 +37,11 @@ if st.button("🚀 Generate Synthetic Data"):
 
         # **Parsing AI Response & Creating DataFrame**
         try:
-            lines = ai_generated_data.split("\n")
-            columns = lines[0].split("|")[1:-1]  # Extract column names
-            columns = [col.strip() for col in columns]  # Clean column names
+            # Convert AI-generated response into a readable format
+            data_io = io.StringIO(ai_generated_data)
+            df = pd.read_csv(data_io)
 
-            # Extract Data Rows
-            data_rows = []
-            for line in lines[2:]:  # Skip first two lines (headers)
-                if "|" in line:
-                    row_values = line.split("|")[1:-1]  # Extract row values
-                    row_values = [value.strip() for value in row_values]
-                    data_rows.append(row_values)
-
-            # Convert to DataFrame
-            df = pd.DataFrame(data_rows, columns=columns)
-
-            # Convert numeric columns
+            # Convert numeric columns where possible
             for col in df.columns:
                 try:
                     df[col] = pd.to_numeric(df[col])  # Convert numbers if possible
