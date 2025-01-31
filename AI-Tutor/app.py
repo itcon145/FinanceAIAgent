@@ -37,9 +37,9 @@ for title, link in video_links.items():
 
 st.subheader("📖 Articles & Resources")
 articles = {
-    "📘 The Future of AI in Finance": "https://www.forbes.com/sites/forbestechcouncil/2023/07/10/the-future-of-ai-in-financial-services/",
-    "📘 AI in FP&A: A Game Changer": "https://www.cfo.com/technology/ai-in-fpa-how-ai-is-transforming-financial-planning",
-    "📘 Machine Learning in Financial Forecasting": "https://hbr.org/2022/05/how-machine-learning-is-changing-financial-planning",
+    "📘 Excel now has Python: Your gateway to AI in Finance": "https://www.linkedin.com/posts/christianmartinezthefinancialfox_python-in-excel-for-finance-and-fpa-activity-7287334254798073858-vleU?utm_source=share&utm_medium=member_desktop",
+    "📘 AI in FP&A: A Game Changer": "https://www.linkedin.com/posts/christianmartinezthefinancialfox_i-decided-to-start-a-newsletter-of-ai-for-activity-7214510537320083456-fQLB?utm_source=share&utm_medium=member_desktop",
+    "📘 Machine Learning in Financial Forecasting": "https://www.linkedin.com/pulse/using-ai-ml-fpa-forecasts-christian-martinez-nv9ke/?trackingId=gihhw7FLT1CrTbVaYu7zwg%3D%3D",
 }
 
 for title, link in articles.items():
