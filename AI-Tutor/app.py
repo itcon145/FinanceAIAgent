@@ -18,26 +18,31 @@ st.write("Explore articles, YouTube videos, and exercises about AI in Finance.")
 
 # **Pre-Loaded Content**
 st.subheader("🎥 Featured Learning Videos")
-video_links = [
-    ("AI for Finance Channel", "https://www.youtube.com/@christianmartinezAIforFinance"),
-    ("Introduction to AI in Finance", "https://www.youtube.com/watch?v=NpK4bALWQ0A&t=746s"),
-    ("How AI is Changing FP&A", "https://www.youtube.com/watch?v=kophdbdaDl0&t=7s"),
-    ("AI for Budgeting & Forecasting", "https://www.youtube.com/watch?v=dn6zWMuI2q8&t=801s"),
-    ("Advanced AI in Finance Strategies", "https://www.youtube.com/watch?v=rN49URY3Q_c&t=5s"),
-    ("Machine Learning for FP&A", "https://www.youtube.com/watch?v=4PUOYq3j_YM&t=11s"),
-]
 
-for title, link in video_links:
-    st.markdown(f"📌 [{title}]({link})")
+video_links = {
+    "AI for Finance Channel": "https://www.youtube.com/@christianmartinezAIforFinance",
+    "Introduction to AI in Finance": "https://www.youtube.com/embed/NpK4bALWQ0A",
+    "How AI is Changing FP&A": "https://www.youtube.com/embed/kophdbdaDl0",
+    "AI for Budgeting & Forecasting": "https://www.youtube.com/embed/dn6zWMuI2q8",
+    "Advanced AI in Finance Strategies": "https://www.youtube.com/embed/rN49URY3Q_c",
+    "Machine Learning for FP&A": "https://www.youtube.com/embed/4PUOYq3j_YM",
+}
+
+for title, link in video_links.items():
+    st.markdown(f"### 📌 {title}")
+    if "youtube.com/embed" in link:
+        st.video(link)
+    else:
+        st.markdown(f"🔗 [Watch on YouTube]({link})")
 
 st.subheader("📖 Articles & Resources")
-articles = [
-    ("📘 The Future of AI in Finance", "https://www.forbes.com/sites/forbestechcouncil/2023/07/10/the-future-of-ai-in-financial-services/"),
-    ("📘 AI in FP&A: A Game Changer", "https://www.cfo.com/technology/ai-in-fpa-how-ai-is-transforming-financial-planning"),
-    ("📘 Machine Learning in Financial Forecasting", "https://hbr.org/2022/05/how-machine-learning-is-changing-financial-planning"),
-]
+articles = {
+    "📘 The Future of AI in Finance": "https://www.forbes.com/sites/forbestechcouncil/2023/07/10/the-future-of-ai-in-financial-services/",
+    "📘 AI in FP&A: A Game Changer": "https://www.cfo.com/technology/ai-in-fpa-how-ai-is-transforming-financial-planning",
+    "📘 Machine Learning in Financial Forecasting": "https://hbr.org/2022/05/how-machine-learning-is-changing-financial-planning",
+}
 
-for title, link in articles:
+for title, link in articles.items():
     st.markdown(f"📌 [{title}]({link})")
 
 # **Interactive AI Tutor**
@@ -78,7 +83,7 @@ quiz_questions = {
 }
 
 for question, options in quiz_questions.items():
-    user_answer = st.radio(f"📌 {question}", options)
+    user_answer = st.radio(f"📌 {question}", options, key=question)
     if st.button(f"✅ Submit Answer for {question}"):
         if "D" in user_answer:
             st.success("🎉 Correct!")
