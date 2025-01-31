@@ -27,8 +27,17 @@ if st.button("🚀 Generate Synthetic Data"):
         client = Groq(api_key=GROQ_API_KEY)
         response = client.chat.completions.create(
             messages=[
-                {"role": "system", "content": "You are an AI that generates structured synthetic data for Excel. Users will describe the dataset, and you will create column names, data types, and a sample dataset. Provide the data as a CSV-formatted table (comma-separated values)."},
-                {"role": "user", "content": f"Generate a structured dataset based on this description: {user_prompt}. Format it strictly as a CSV table with headers and data rows, separated by commas."}
+                {
+                    "role": "system",
+                    "content": (
+                        "You are an AI that generates structured synthetic data for Excel. "
+                        "Users will describe the dataset, and you will create realistic sample data "
+                        "in a strict CSV format with column names in the first row, followed by the data. "
+                        "Ensure values are separated by commas, and avoid extra formatting like tables or markdown. "
+                        "Output only raw CSV text."
+                    ),
+                },
+                {"role": "user", "content": f"Generate a structured dataset based on this description: {user_prompt}. Format the output as a raw CSV file, strictly comma-separated."}
             ],
             model="llama3-8b-8192",
         )
@@ -37,9 +46,14 @@ if st.button("🚀 Generate Synthetic Data"):
 
         # **Parsing AI Response & Creating DataFrame**
         try:
-            # Convert AI-generated response into a readable format
+            # Convert AI-generated response into a readable CSV format
             data_io = io.StringIO(ai_generated_data)
-            df = pd.read_csv(data_io)
+
+            # Read CSV while handling potential AI formatting errors
+            df = pd.read_csv(data_io, sep=",", engine="python", skipinitialspace=True)
+
+            # Ensure column names are cleaned
+            df.columns = [col.strip() for col in df.columns]
 
             # Convert numeric columns where possible
             for col in df.columns:
