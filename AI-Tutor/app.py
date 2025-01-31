@@ -3,7 +3,7 @@ import os
 from groq import Groq
 from dotenv import load_dotenv
 
-# Load API key securely
+# Load API key securely here
 load_dotenv()
 GROQ_API_KEY = os.getenv("GROQ_API_KEY")
 
