@@ -123,10 +123,21 @@ def plot_gauge(indicator_number, indicator_color, indicator_suffix, indicator_ti
 def plot_top_right():
     sales_data = duckdb.sql(
         f"""
-        SELECT business_unit, Scenario, SUM(sales) AS sales
-        FROM df 
-        WHERE Year='2023' AND Account='Sales' 
-        GROUP BY Scenario, business_unit
+        WITH sales_data AS (
+            UNPIVOT (
+                SELECT Scenario, business_unit, {','.join(all_months)}
+                FROM df 
+                WHERE Year='2023' AND Account='Sales'
+            ) 
+            ON {','.join(all_months)}
+            INTO NAME month VALUE sales
+        ),
+        aggregated_sales AS (
+            SELECT Scenario, business_unit, SUM(sales) AS sales
+            FROM sales_data
+            GROUP BY Scenario, business_unit
+        )
+        SELECT * FROM aggregated_sales
         """
     ).df()
 
@@ -149,9 +160,16 @@ def plot_top_right():
 def plot_bottom_left():
     sales_data = duckdb.sql(
         f"""
-        SELECT Scenario, month, sales 
-        FROM df 
-        WHERE Year='2023' AND Account='Sales' AND business_unit='Software'
+        WITH sales_data AS (
+            UNPIVOT (
+                SELECT Scenario, {','.join(all_months)}
+                FROM df 
+                WHERE Year='2023' AND Account='Sales' AND business_unit='Software'
+            ) 
+            ON {','.join(all_months)}
+            INTO NAME month VALUE sales
+        )
+        SELECT * FROM sales_data
         """
     ).df()
 
@@ -165,26 +183,6 @@ def plot_bottom_left():
         title="📈 Monthly Budget vs Forecast 2023",
     )
     fig.update_traces(textposition="top center")
-    st.plotly_chart(fig, use_container_width=True)
-
-
-def plot_bottom_right():
-    sales_data = duckdb.sql(
-        f"""
-        SELECT Account, Year, SUM(ABS(sales)) AS sales 
-        FROM df 
-        WHERE Scenario='Actuals' AND Account!='Sales'
-        GROUP BY Account, Year
-        """
-    ).df()
-
-    fig = px.bar(
-        sales_data,
-        x="Year",
-        y="sales",
-        color="Account",
-        title="📊 Actual Yearly Sales Per Account",
-    )
     st.plotly_chart(fig, use_container_width=True)
 
 
@@ -208,20 +206,15 @@ with top_left_column:
 
     with column_3:
         plot_metric("Profit Margin", 75.38, prefix="", suffix=" %")
-        plot_gauge(7, "#FF2B2B", " days", "Out Stock", 31)
         
     with column_4:
         plot_metric("Debt Ratio", 1.10, prefix="", suffix=" %")
-        plot_gauge(28, "#29B09D", " days", "Delay", 31)
 
 with top_right_column:
     plot_top_right()
 
 with bottom_left_column:
     plot_bottom_left()
-
-with bottom_right_column:
-    plot_bottom_right()
 
 #######################################
 # AI-POWERED INSIGHTS
