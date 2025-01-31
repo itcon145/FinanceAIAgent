@@ -83,23 +83,36 @@ if st.button("🚀 Get Stock Data"):
 
         st.write(response.choices[0].message.content)
 
+        # **Fixing Chat Persistence with Streamlit Session State**
+        if "chat_history" not in st.session_state:
+            st.session_state.chat_history = []
+
         # AI Chat - Users Can Ask Questions
         st.subheader("🗣️ Chat with AI About This Stock")
 
         user_query = st.text_input("🔍 Ask the AI about this company or industry:")
-        if user_query:
-            chat_response = client.chat.completions.create(
-                messages=[
-                    {"role": "system", "content": "You are an AI financial analyst providing insights on stock market trends and companies."},
-                    {"role": "user", "content": f"Stock Market Data for {company_name}:\n"
-                                                f"Sector: {stock.info.get('sector', 'N/A')}\n"
-                                                f"Industry: {stock.info.get('industry', 'N/A')}\n"
-                                                f"Market Cap: {stock.info.get('marketCap', 'N/A'):,}\n"
-                                                f"{user_query}"}
-                ],
-                model="llama3-8b-8192",
-            )
-            st.write(chat_response.choices[0].message.content)
+
+        if st.button("💬 Ask AI"):
+            if user_query:
+                chat_response = client.chat.completions.create(
+                    messages=[
+                        {"role": "system", "content": "You are an AI financial analyst providing insights on stock market trends and companies."},
+                        {"role": "user", "content": f"Stock Market Data for {company_name}:\n"
+                                                    f"Sector: {stock.info.get('sector', 'N/A')}\n"
+                                                    f"Industry: {stock.info.get('industry', 'N/A')}\n"
+                                                    f"Market Cap: {stock.info.get('marketCap', 'N/A'):,}\n"
+                                                    f"{user_query}"}
+                    ],
+                    model="llama3-8b-8192",
+                )
+
+                # Append user input and AI response to session state
+                st.session_state.chat_history.append(("🧑‍💼 You", user_query))
+                st.session_state.chat_history.append(("🤖 AI", chat_response.choices[0].message.content))
+
+        # **Display Chat History**
+        for sender, message in st.session_state.chat_history:
+            st.write(f"**{sender}:** {message}")
 
     except Exception as e:
         st.error(f"⚠️ Error fetching stock data: {e}")
