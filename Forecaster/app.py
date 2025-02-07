@@ -32,6 +32,9 @@ if uploaded_file:
     # Select column for forecasting
     target_column = st.selectbox("📌 Select the column to forecast:", df.columns)
 
+    # User input for forecast length
+    forecast_length = st.slider("⏳ Select the forecast length (days):", min_value=30, max_value=365, value=180)
+
     if st.button("🚀 Generate Forecast"):
         # Prepare data for Prophet
         forecast_data = df.copy()
@@ -43,7 +46,7 @@ if uploaded_file:
         model.fit(forecast_data)
 
         # Create future dates for prediction
-        future = model.make_future_dataframe(periods=180)
+        future = model.make_future_dataframe(periods=forecast_length)
         forecast = model.predict(future)
 
         # Display Forecast Data
@@ -68,11 +71,11 @@ if uploaded_file:
         # Prepare summary for AI
         forecast_summary = f"""
         Financial Forecast Summary:
-        - Forecasted Period: {forecast['ds'].iloc[-180].strftime('%Y-%m-%d')} to {forecast['ds'].iloc[-1].strftime('%Y-%m-%d')}
+        - Forecasted Period: {forecast['ds'].iloc[-forecast_length].strftime('%Y-%m-%d')} to {forecast['ds'].iloc[-1].strftime('%Y-%m-%d')}
         - Expected Range:
-          - Lower Bound: ${forecast['yhat_lower'].iloc[-180:].min():,.2f}
-          - Upper Bound: ${forecast['yhat_upper'].iloc[-180:].max():,.2f}
-        - Average Forecasted Value: ${forecast['yhat'].iloc[-180:].mean():,.2f}
+          - Lower Bound: ${forecast['yhat_lower'].iloc[-forecast_length:].min():,.2f}
+          - Upper Bound: ${forecast['yhat_upper'].iloc[-forecast_length:].max():,.2f}
+        - Average Forecasted Value: ${forecast['yhat'].iloc[-forecast_length:].mean():,.2f}
         """
 
         # AI Commentary Section
