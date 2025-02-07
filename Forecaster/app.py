@@ -32,14 +32,19 @@ if uploaded_file:
     # Select column for forecasting
     target_column = st.selectbox("📌 Select the column to forecast:", df.columns)
     
-    # Select categorical column for filtering (if applicable)
+    # Select multiple categorical columns for filtering (if applicable)
     categorical_columns = df.select_dtypes(include=['object']).columns
+    selected_filters = {}
     if len(categorical_columns) > 0:
-        selected_category_column = st.selectbox("🎯 Select a categorical column to filter (Optional):", [None] + list(categorical_columns))
-        if selected_category_column:
-            unique_values = df[selected_category_column].unique()
-            selected_value = st.selectbox(f"🔍 Select value from {selected_category_column}:", unique_values)
-            df = df[df[selected_category_column] == selected_value]
+        selected_category_columns = st.multiselect("🎯 Select categorical columns to filter (Optional):", categorical_columns)
+        for col in selected_category_columns:
+            unique_values = df[col].unique()
+            selected_value = st.selectbox(f"🔍 Select value from {col}:", unique_values)
+            selected_filters[col] = selected_value
+        
+        # Apply filters
+        for col, val in selected_filters.items():
+            df = df[df[col] == val]
 
     # User input for forecast length
     forecast_length = st.slider("⏳ Select the forecast length (days):", min_value=30, max_value=365, value=180)
