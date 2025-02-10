@@ -15,8 +15,8 @@ if not GROQ_API_KEY:
     st.error("🚨 API Key is missing! Set it in Streamlit Secrets or a .env file.")
     st.stop()
 
-# **🎨 Streamlit UI Styling and title**
-st.set_page_config(page_title="Your AI FP&A Budget Variance Analyzer", page_icon="📊", layout="wide")
+# **🎨 Streamlit UI Styling**
+st.set_page_config(page_title="FP&A Budget Variance Analyzer", page_icon="📊", layout="wide")
 
 st.markdown("""
     <style>
@@ -31,7 +31,7 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # **📢 Title & Description**
-st.markdown('<h1 class="title">📊 Your AI FP&A Budget Variance Analyzer</h1>', unsafe_allow_html=True)
+st.markdown('<h1 class="title">📊 FP&A Budget Variance Analyzer</h1>', unsafe_allow_html=True)
 st.markdown('<p class="subtitle">Upload your budget vs. actuals data, select a sheet, and AI will generate variance insights like a Head of FP&A.</p>', unsafe_allow_html=True)
 
 # **📂 Upload Financial Data**
@@ -60,11 +60,10 @@ if uploaded_file:
         df_totals = pd.concat([df, pd.DataFrame([totals])], ignore_index=True)
 
         # **Format Numbers**
-        def currency_format(value):
-            if value >= 1000 or value <= -1000:
-                return f"${abs(value):,.0f}" if value > 0 else f"(${abs(value):,.0f})"
-            else:
-                return f"${abs(value):,.0f}" if value > 0 else f"(${abs(value):,.0f})"
+        def currency_format(val):
+            if pd.notna(val):
+                return f"${val:,.0f}" if val >= 0 else f"(${abs(val):,.0f})"
+            return ""
 
         # **Apply Color Coding for Variance**
         def highlight_variance(val):
@@ -80,7 +79,7 @@ if uploaded_file:
 
         # **Display Data Table with Color-Coding**
         st.subheader("📊 Variance Analysis Table (Color-Coded)")
-        st.dataframe(styled_df)
+        st.dataframe(df_totals)
 
         # **Visualization - Budget Variance Chart**
         df_sorted = df.sort_values(by="Actuals vs Budget")
@@ -96,8 +95,8 @@ if uploaded_file:
         plt.ylabel("Variance")
         st.pyplot(plt)
 
-        # **Convert Data Summary for AI**
-        data_summary = df_totals.describe(include="all").to_string()
+        # **Convert Full Variance Table to JSON for AI Processing**
+        data_for_ai = df_totals[["Account", "Category", "Actual", "FY25 Budget", "Actuals vs Budget"]].to_json(orient="records")
 
         # **Generate FP&A Commentary**
         st.subheader("🤖 AI-Generated FP&A Commentary")
@@ -106,14 +105,14 @@ if uploaded_file:
 
         prompt = f"""
         You are the Head of FP&A at a SaaS company.
-        Your task is to analyze the budget variance data from the selected sheet '{selected_sheet}' and provide:
+        Your task is to analyze the full budget variance table and provide:
         - Key insights from the data.
         - Areas of concern and key drivers for variance.
         - A CFO-ready summary using the Pyramid Principle.
         - Actionable recommendations to improve financial performance.
 
-        Here is the dataset summary:
-        {data_summary}
+        Here is the full dataset in JSON format:
+        {data_for_ai}
         """
 
         response = client.chat.completions.create(
