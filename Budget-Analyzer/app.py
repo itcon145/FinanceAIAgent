@@ -61,17 +61,10 @@ if uploaded_file:
 
         # **Format Numbers**
         def currency_format(value):
-    """
-    Formats a number according to the specified format:
-    - Positive thousands as "$1,000"
-    - Negative thousands as "($1,000)"
-    - Positive smaller values with "$70"
-    - Negative smaller values with "($80)"
-    """
-    if value >= 1000 or value <= -1000:
-        return f"${abs(value):,.0f}" if value > 0 else f"(${abs(value):,.0f})"
-    else:
-        return f"${abs(value):,.0f}" if value > 0 else f"(${abs(value):,.0f})"
+            if value >= 1000 or value <= -1000:
+                return f"${abs(value):,.0f}" if value > 0 else f"(${abs(value):,.0f})"
+            else:
+                return f"${abs(value):,.0f}" if value > 0 else f"(${abs(value):,.0f})"
 
         # **Apply Color Coding for Variance**
         def highlight_variance(val):
