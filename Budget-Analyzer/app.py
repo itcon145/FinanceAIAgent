@@ -15,7 +15,7 @@ if not GROQ_API_KEY:
     st.error("🚨 API Key is missing! Set it in Streamlit Secrets or a .env file.")
     st.stop()
 
-# **🎨 Streamlit UI Styling**
+# **🎨 Streamlit UI Styling and title**
 st.set_page_config(page_title="Your AI FP&A Budget Variance Analyzer", page_icon="📊", layout="wide")
 
 st.markdown("""
