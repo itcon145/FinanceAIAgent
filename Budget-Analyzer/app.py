@@ -60,10 +60,18 @@ if uploaded_file:
         df_totals = pd.concat([df, pd.DataFrame([totals])], ignore_index=True)
 
         # **Format Numbers**
-        def currency_format(val):
-            if pd.notna(val):
-                return f"${val:,.0f}" if val >= 0 else f"(${abs(val):,.0f})"
-            return ""
+        def currency_format(value):
+    """
+    Formats a number according to the specified format:
+    - Positive thousands as "$1,000"
+    - Negative thousands as "($1,000)"
+    - Positive smaller values with "$70"
+    - Negative smaller values with "($80)"
+    """
+    if value >= 1000 or value <= -1000:
+        return f"${abs(value):,.0f}" if value > 0 else f"(${abs(value):,.0f})"
+    else:
+        return f"${abs(value):,.0f}" if value > 0 else f"(${abs(value):,.0f})"
 
         # **Apply Color Coding for Variance**
         def highlight_variance(val):
