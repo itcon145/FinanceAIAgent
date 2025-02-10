@@ -31,96 +31,102 @@ st.markdown("""
 """, unsafe_allow_html=True)
 
 # **📢 Title & Description**
-st.markdown('<h1 class="title">📊 FP&A Budget Variance Analyzer</h1>', unsafe_allow_html=True)
-st.markdown('<p class="subtitle">Upload your budget vs. actuals data, and AI will generate variance analysis insights like a Head of FP&A.</p>', unsafe_allow_html=True)
+st.markdown('<h1 class="title">📊 Your AI FP&A Budget Variance Analyzer</h1>', unsafe_allow_html=True)
+st.markdown('<p class="subtitle">Upload your budget vs. actuals data, select a sheet, and AI will generate variance insights like a Head of FP&A.</p>', unsafe_allow_html=True)
 
 # **📂 Upload Financial Data**
 st.subheader("📥 Upload Your Budget Variance Data (Excel)")
 uploaded_file = st.file_uploader("Choose an Excel file", type=["xlsx"])
 
 if uploaded_file:
-    # Load Excel Data
-    df = pd.read_excel(uploaded_file, sheet_name="Month")  
+    # Load sheet names
+    xls = pd.ExcelFile(uploaded_file)
+    sheet_names = xls.sheet_names
 
-    # **Data Processing**
-    df["Actuals vs Budget"] = df["Actual"] - df["FY25 Budget"]
+    # Let user select sheet
+    selected_sheet = st.selectbox("📑 Select a Sheet to Analyze:", sheet_names)
 
-    # **Calculate Totals**
-    totals = df.select_dtypes(include=[np.number]).sum()
-    totals["Category"] = "TOTAL"
-    totals["Account"] = ""  
-    df_totals = pd.concat([df, pd.DataFrame([totals])], ignore_index=True)
+    if selected_sheet:
+        # Load selected sheet
+        df = pd.read_excel(uploaded_file, sheet_name=selected_sheet)  
 
-    # **Format Numbers**
+        # **Data Processing**
+        df["Actuals vs Budget"] = df["Actual"] - df["FY25 Budget"]
 
-    def currency_format(val):
-    if pd.notna(val):
-        return f"${val:,.2f}" if val >= 0 else f"(${abs(val):,.2f})"
-    return ""
+        # **Calculate Totals**
+        totals = df.select_dtypes(include=[np.number]).sum()
+        totals["Category"] = "TOTAL"
+        totals["Account"] = ""  
+        df_totals = pd.concat([df, pd.DataFrame([totals])], ignore_index=True)
 
-    # **Apply Color Coding for Variance**
-    def highlight_variance(val):
-        color = "lightcoral" if val > 0 else "lightgreen"
-        return f"background-color: {color}"
+        # **Format Numbers**
+        def currency_format(val):
+            if pd.notna(val):
+                return f"${val:,.0f}" if val >= 0 else f"(${abs(val):,.0f})"
+            return ""
 
-    # **Apply Formatting**
-    styled_df = df_totals.style.applymap(highlight_variance, subset=["Actuals vs Budget"]).format({
-        "Actual": currency_format,
-        "FY25 Budget": currency_format,
-        "Actuals vs Budget": currency_format
-    })
+        # **Apply Color Coding for Variance**
+        def highlight_variance(val):
+            color = "lightcoral" if val > 0 else "lightgreen"
+            return f"background-color: {color}"
 
-    # **Display Data Table**
-    st.subheader("📊 Variance Analysis Table")
-    st.dataframe(df_totals)
+        # **Apply Formatting & Color-Coding to Dataframe**
+        styled_df = df_totals.style.applymap(highlight_variance, subset=["Actuals vs Budget"]).format({
+            "Actual": currency_format,
+            "FY25 Budget": currency_format,
+            "Actuals vs Budget": currency_format
+        })
 
-    # **Visualization - Budget Variance Chart**
-    df_sorted = df.sort_values(by="Actuals vs Budget")
+        # **Display Data Table with Color-Coding**
+        st.subheader("📊 Variance Analysis Table (Color-Coded)")
+        st.dataframe(styled_df)
 
-    plt.figure(figsize=(10, 5))
-    sns.barplot(
-        x="Account", y="Actuals vs Budget", data=df_sorted, 
-        palette=["red" if x > 0 else "green" for x in df_sorted["Actuals vs Budget"]]
-    )
-    plt.xticks(rotation=90)
-    plt.axhline(0, color='black', linewidth=1)
-    plt.title("Actuals vs Budget Variance")
-    plt.ylabel("Variance")
-    st.pyplot(plt)
+        # **Visualization - Budget Variance Chart**
+        df_sorted = df.sort_values(by="Actuals vs Budget")
 
-    # **Convert Data Summary for AI**
-    data_summary = df_totals.describe(include="all").to_string()
+        plt.figure(figsize=(10, 5))
+        sns.barplot(
+            x="Account", y="Actuals vs Budget", data=df_sorted, 
+            palette=["red" if x > 0 else "green" for x in df_sorted["Actuals vs Budget"]]
+        )
+        plt.xticks(rotation=90)
+        plt.axhline(0, color='black', linewidth=1)
+        plt.title("Actuals vs Budget Variance")
+        plt.ylabel("Variance")
+        st.pyplot(plt)
 
-    # **Generate FP&A Commentary**
-    st.subheader("🤖 AI-Generated FP&A Commentary")
+        # **Convert Data Summary for AI**
+        data_summary = df_totals.describe(include="all").to_string()
 
-    client = Groq(api_key=GROQ_API_KEY)
+        # **Generate FP&A Commentary**
+        st.subheader("🤖 AI-Generated FP&A Commentary")
 
-    prompt = f"""
-    You are the Head of FP&A at a SaaS company.
-    Your task is to analyze the budget variance data and provide:
-    - Key insights from the data.
-    - Areas of concern and key drivers for variance.
-    - A CFO-ready summary using the Pyramid Principle.
-    - Actionable recommendations to improve financial performance.
+        client = Groq(api_key=GROQ_API_KEY)
 
-    Here is the dataset summary:
-    {data_summary}
-    """
+        prompt = f"""
+        You are the Head of FP&A at a SaaS company.
+        Your task is to analyze the budget variance data from the selected sheet '{selected_sheet}' and provide:
+        - Key insights from the data.
+        - Areas of concern and key drivers for variance.
+        - A CFO-ready summary using the Pyramid Principle.
+        - Actionable recommendations to improve financial performance.
 
-    response = client.chat.completions.create(
-        messages=[
-            {"role": "system", "content": "You are a financial planning and analysis (FP&A) expert, specializing in SaaS companies."},
-            {"role": "user", "content": prompt}
-        ],
-        model="llama3-8b-8192",
-    )
+        Here is the dataset summary:
+        {data_summary}
+        """
 
-    ai_commentary = response.choices[0].message.content
+        response = client.chat.completions.create(
+            messages=[
+                {"role": "system", "content": "You are a financial planning and analysis (FP&A) expert, specializing in SaaS companies."},
+                {"role": "user", "content": prompt}
+            ],
+            model="llama3-8b-8192",
+        )
 
-    # **Display AI Commentary**
-    st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
-    st.subheader("📖 AI-Generated FP&A Commentary")
-    st.write(ai_commentary)
-    st.markdown('</div>', unsafe_allow_html=True)
+        ai_commentary = response.choices[0].message.content
 
+        # **Display AI Commentary**
+        st.markdown('<div class="analysis-container">', unsafe_allow_html=True)
+        st.subheader("📖 AI-Generated FP&A Commentary")
+        st.write(ai_commentary)
+        st.markdown('</div>', unsafe_allow_html=True)
