@@ -16,7 +16,7 @@ if not GROQ_API_KEY:
     st.stop()
 
 # **🎨 Streamlit UI Styling**
-st.set_page_config(page_title="FP&A Budget Variance Analyzer", page_icon="📊", layout="wide")
+st.set_page_config(page_title="Your AI FP&A Budget Variance Analyzer", page_icon="📊", layout="wide")
 
 st.markdown("""
     <style>
