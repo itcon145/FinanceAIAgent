@@ -52,10 +52,11 @@ if uploaded_file:
     df_totals = pd.concat([df, pd.DataFrame([totals])], ignore_index=True)
 
     # **Format Numbers**
+
     def currency_format(val):
-        if pd.notna(val):
-            return f"${val:,.0f}" if val >= 0 else f"(${abs(val):,.0f})"
-        return ""
+    if pd.notna(val):
+        return f"${val:,.2f}" if val >= 0 else f"(${abs(val):,.2f})"
+    return ""
 
     # **Apply Color Coding for Variance**
     def highlight_variance(val):
