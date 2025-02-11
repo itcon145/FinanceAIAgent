@@ -1,16 +1,7 @@
-# Core Libraries
-pandas==1.5.3
-numpy==1.23.5
-matplotlib==3.7.1
-
-# Streamlit for the web app
-streamlit==1.18.1
-
-# Prophet for time-series forecasting
-prophet==1.1
-
-# Groq for LLM API integration
-groq==0.1.2
-
-# python-dotenv for loading environment variables
-python-dotenv==1.0.0
+pandas
+numpy
+matplotlib
+streamlit
+prophet
+groq
+python-dotenv
