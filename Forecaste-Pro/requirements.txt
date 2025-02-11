@@ -6,4 +6,4 @@ prophet
 groq
 python-dotenv
 openpyxl
-pmdarima 
+scipy 
