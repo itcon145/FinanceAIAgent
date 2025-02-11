@@ -1,0 +1,9 @@
+streamlit
+pandas
+numpy
+matplotlib.pyplot
+prophet
+os
+groq
+dotenv
+io
